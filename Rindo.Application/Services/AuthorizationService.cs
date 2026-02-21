@@ -51,7 +51,7 @@ public class AuthorizationService(IUserRepository userRepository, IJwtProvider j
     {
         var tokenResult = jwtProvider.GenerateToken(user.UserId);
         
-        await authCacheService.InsertRefreshTokenAsync(tokenResult.RefreshToken, tokenResult.RefreshTokenValue);
+        await authCacheService.InsertRefreshTokenAsync(tokenResult.RefreshToken, tokenResult.RefreshTokenValue, tokenResult.RefreshTokenExpires);
         
         return new TokenDto
         {

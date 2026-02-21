@@ -7,7 +7,7 @@ using Rindo.Domain.DataObjects;
 
 namespace Application.Auth.Jwt;
 
-public record TokenResult(string Token, string RefreshToken, JwtSecurityToken RefreshTokenValue);
+public record TokenResult(string Token, string RefreshToken, JwtSecurityToken RefreshTokenValue, TimeSpan RefreshTokenExpires);
 
 public interface IJwtProvider
 {
@@ -29,6 +29,6 @@ public class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
         var token = new JwtSecurityTokenHandler().WriteToken(tokenValue);
         var refreshTokenValue = new JwtSecurityToken(claims: claims, signingCredentials: signingCredentials, expires: DateTime.UtcNow.AddDays(_options.RefreshTokenExpiresDays));
         var refreshToken = new JwtSecurityTokenHandler().WriteToken(refreshTokenValue);
-        return new TokenResult(token, refreshToken, refreshTokenValue);
+        return new TokenResult(token, refreshToken, refreshTokenValue, TimeSpan.FromDays(_options.RefreshTokenExpiresDays));
     }
 }

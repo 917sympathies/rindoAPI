@@ -5,12 +5,14 @@ using Application.Interfaces.Services;
 using Application.Interfaces.Transactions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Rindo.Infrastructure.Repositories;
 using Rindo.Infrastructure.Repositories.Cached;
 using Rindo.Infrastructure.Services.Caching;
 using Rindo.Infrastructure.Services.Transactions;
+using StackExchange.Redis;
 
 namespace Rindo.Infrastructure;
 
@@ -40,9 +42,19 @@ public static class DependencyInjection
         services.AddDbContext<PostgresDbContext>(options => options
                 .UseNpgsql(dbOptions.POSTGRESQL, b => b.MigrationsAssembly("Rindo.API"))
                 .UseSnakeCaseNamingConvention());
+        
+        // Redis
         services.AddStackExchangeRedisCache(redisOptions =>
         {
             redisOptions.Configuration = dbOptions.REDIS;
+        });
+        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(dbOptions.REDIS));
+
+        services.AddScoped<IExtendedDistributedCache>(serviceProvider =>
+        {
+            var cache = serviceProvider.GetRequiredService<IDistributedCache>();
+            var redis = serviceProvider.GetRequiredService<IConnectionMultiplexer>();
+            return new ExtendedDistributedCache(cache, redis);
         });
         
         services.AddScoped<IRedisCacheService, RedisCacheService>();

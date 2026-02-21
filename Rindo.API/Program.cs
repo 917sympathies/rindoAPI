@@ -1,5 +1,6 @@
 using Application;
 using Application.Interfaces.Access;
+using Application.Services.Background;
 using NLog;
 using NLog.Web;
 using Rindo.API.Common;
@@ -9,7 +10,6 @@ using Rindo.API.Middleware.Logging;
 using Rindo.Chat;
 using Rindo.Infrastructure;
 
-// Early init of NLog to allow startup and exception logging, before host is built
 var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("Starting app");
 
@@ -30,6 +30,7 @@ try
         { 
             options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; 
         });
+    builder.Services.AddHostedService<AuthCacheClearingBackgroundService>(); 
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Configuration
@@ -54,7 +55,6 @@ try
     builder.Services.AddScoped<IDataAccessController, DataAccessController>();
     
     builder.Services.AddJwt(builder.Configuration);
-    // builder.Services.AddScoped<AsyncActionAccessFilter>();
     builder.Services.AddSignalR();
     
     var app = builder.Build();
@@ -84,7 +84,7 @@ try
 }
 catch (Exception exception)
 {
-    // NLog: catch setup errors
+    // catch setup errors
     logger.Error(exception, "Stopped program because of exception");
     throw;
 }
