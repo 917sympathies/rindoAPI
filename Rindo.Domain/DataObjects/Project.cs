@@ -13,10 +13,10 @@ public class Project
     public Guid OwnerId { get; init; }
     public Guid ChatId { get; init; }
     // do we need these props in DO?
-    public ICollection<Stage>? Stages { get; set; } 
-    public ICollection<User>? Users { get; set; } 
-    public ICollection<Role>? Roles { get; set; } 
-    public ICollection<Invitation>? Invitations { get; set; } 
+    public ICollection<Stage> Stages { get; set; } 
+    public ICollection<User> Users { get; set; } 
+    public ICollection<Role> Roles { get; set; } 
+    public ICollection<Invitation> Invitations { get; set; } 
     public DateTimeOffset Created { get; set; }
     public Guid CreatedBy { get; init; }
     public DateTimeOffset Modified { get; init; }

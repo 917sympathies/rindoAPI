@@ -3,6 +3,7 @@ using Application.Common.Mapping;
 using Application.Interfaces.Access;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using Mapster;
 using Rindo.Domain.DTO;
 using Rindo.Domain.DTO.Projects;
 using Rindo.Domain.DTO.Tasks;
@@ -13,7 +14,6 @@ namespace Application.Services;
 
 public class TaskService(
     ITaskRepository taskRepository,
-    ITaskCommentRepository taskCommentRepository,
     IUserRepository userRepository,
     IProjectService projectService,
     IDataAccessController dataAccessController) : ITaskService
@@ -55,9 +55,9 @@ public class TaskService(
         return $"{projectShortName}-{taskNumber}";
     }
 
-    public async Task UpdateTask(UpdateTaskDto projectTaskDto)
+    public Task UpdateTask(UpdateTaskDto projectTaskDto)
     {
-        await taskRepository.UpdateTask(projectTaskDto, dataAccessController.EmployeeId, DateTime.UtcNow);
+        return taskRepository.UpdateTask(projectTaskDto, dataAccessController.EmployeeId, DateTime.UtcNow);
     }
 
     public async Task DeleteTask(Guid taskId)
@@ -78,8 +78,7 @@ public class TaskService(
         foreach (var taskDto in tasksDtos.Where(x => x.Assignee is not null))
         {
             var assignee = users.First(x => x.UserId == taskDto.Assignee!.Id);
-            taskDto.Assignee.FirstName = assignee.FirstName;
-            taskDto.Assignee.LastName = assignee.LastName;
+            taskDto.Assignee = assignee.Adapt<UserShortInfoDto>();
         }
         return tasksDtos;
     }
@@ -92,15 +91,14 @@ public class TaskService(
         await taskRepository.UpdateProperty(task, projectTask => projectTask.StageId);
     }
 
-    public async Task UnassignTasksFromUser(Guid projectId, Guid userId)
+    public Task UnassignTasksFromUser(Guid projectId, Guid userId)
     {
-        await taskRepository.UnassignTasksFromUser(projectId, userId);
+        return taskRepository.UnassignTasksFromUser(projectId, userId);
     }
 
     public async Task<IEnumerable<ProjectTask>> GetTasksByUserId(Guid userId)
     {
-        var tasks = await taskRepository.GetTasksAssignedToUser(userId);
-        return tasks;
+        return await taskRepository.GetTasksAssignedToUser(userId);
     }
 
     public async Task DeleteTasksByProjectId(Guid projectId)
@@ -116,20 +114,12 @@ public class TaskService(
         if (task.AssigneeId.HasValue)
         {
             var assignee = await userRepository.GetUserById(task.AssigneeId.Value);
-            taskDto.Assignee = new UserShortInfoDto
-            {
-                Id = assignee.UserId,
-                FirstName = assignee.FirstName,
-                LastName = assignee.LastName,
-            };
+            if (assignee is null) throw new NotFoundException("Assignee was not found");
+            taskDto.Assignee = assignee.Adapt<UserShortInfoDto>();
         }
         var reporter = await userRepository.GetUserById(task.ReporterId);
-        taskDto.Reporter = new UserShortInfoDto
-        {
-            Id = reporter.UserId,
-            FirstName = reporter.FirstName,
-            LastName = reporter.LastName,
-        };
+        if(reporter is null) throw new NotFoundException("Reporter was not found");
+        taskDto.Reporter = reporter.Adapt<UserShortInfoDto>();
         if (task.Comments != null && task.Comments.Any())
         {
             var commenters = await userRepository.GetUsersByIds(task.Comments.Select(x => x.UserId).ToArray());
@@ -137,7 +127,7 @@ public class TaskService(
             {
                 Content = x.Content,
                 Time = x.Time,
-                User = commenters.First(us => us.UserId == x.UserId).MapToShortDto()
+                User = commenters.First(us => us.UserId == x.UserId).Adapt<UserShortInfoDto>()
             }).ToArray();
         }
         return taskDto;

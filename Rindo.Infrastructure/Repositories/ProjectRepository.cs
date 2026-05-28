@@ -13,7 +13,7 @@ public class ProjectRepository(PostgresDbContext context, IDataAccessController 
     private readonly PostgresDbContext _context = context;
     public Task<Project> CreateProject(Project project) => CreateAsync(project);
 
-    public async Task DeleteProject(Project project) => await Delete(project);
+    public Task DeleteProject(Project project) => Delete(project);
 
     public async Task UpdateProject(UpdateProjectDto updateProjectDto)
     {

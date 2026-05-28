@@ -4,6 +4,7 @@ using Application.Interfaces.Access;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Application.Interfaces.Transactions;
+using Mapster;
 using Rindo.Domain.DTO;
 using Rindo.Domain.DTO.Projects;
 using Rindo.Domain.DTO.Users;
@@ -26,6 +27,7 @@ public class ProjectService(
     {
         await dataTransactionService.BeginTransactionAsync();
         var chatId = await chatService.Create(new Chat());
+        var owner = await userRepository.GetUserById(dataAccessController.EmployeeId);
         var project = new Project
         {
             Name = projectOnCreateDto.Name,
@@ -41,38 +43,31 @@ public class ProjectService(
             ],
             ChatId = chatId,
             DeadlineDate = projectOnCreateDto.DeadlineDate,
+            Users = [owner!]
         };
         var addedProject = await projectRepository.CreateProject(project);
         await dataTransactionService.CommitTransactionAsync();
         return addedProject.ProjectId;
     }
 
-    public async Task<ProjectOnReturnDto?> GetProjectById(Guid projectId)
+    public async Task<ProjectDto?> GetProjectById(Guid projectId)
     {
         var project = await projectRepository.GetProjectById(projectId);
-        if (project is null)
-        {
-            throw new NotFoundException(nameof(Project), projectId);
-        }
-        return project.MapToDto();
+        return project is null ? throw new NotFoundException(nameof(Project), projectId) : project.Adapt<ProjectDto>();
     }
 
-    public async Task<ProjectOnReturnDto> GetProjectSettings(Guid projectId)
+    public async Task<ProjectDto> GetProjectSettings(Guid projectId)
     {
         var project = await projectRepository.GetProjectById(projectId);
-        if (project == null)
-        {
-            throw new NotFoundException(nameof(Project), projectId);
-        }
-        // weird logic
-        var projectOwner = await userRepository.GetUserById(project.OwnerId);
-        project.Users.Add(projectOwner!);
-        return project.MapToDto();
+        return project == null ? throw new NotFoundException(nameof(Project), projectId) : project.Adapt<ProjectDto>();
+            // // weird logic
+            // var projectOwner = await userRepository.GetUserById(project.OwnerId);
+            // project.Users.Add(projectOwner!);
     }
 
     public async Task<IEnumerable<ProjectShortInfoDto>> GetProjectsWhereUserAttends(Guid userId)
     {
-        return (await projectRepository.GetProjectsWhereUserAttends(userId)).Select(x => x.MapToSidebarDto());
+        return (await projectRepository.GetProjectsWhereUserAttends(userId)).Select(project => project.Adapt<ProjectShortInfoDto>());
     }
 
     public async Task<User> InviteUserToProject(Guid projectId, string username)
@@ -116,14 +111,14 @@ public class ProjectService(
         await dataTransactionService.CommitTransactionAsync();
     }
 
-    public async Task<ProjectHeaderInfoDto?> GetProjectsInfoForHeader(Guid projectId)
+    public Task<ProjectHeaderInfoDto?> GetProjectsInfoForHeader(Guid projectId)
     {
-        return await projectRepository.GetProjectHeaderInfo(projectId);
+        return projectRepository.GetProjectHeaderInfo(projectId);
     }
 
-    public async Task UpdateProject(UpdateProjectDto updateProjectDto)
+    public Task UpdateProject(UpdateProjectDto updateProjectDto)
     {
-        await projectRepository.UpdateProject(updateProjectDto);
+        return projectRepository.UpdateProject(updateProjectDto);
     }
 
     public async Task DeleteProject(Guid projectId)
@@ -136,7 +131,7 @@ public class ProjectService(
         // await taskService.DeleteTasksByProjectId(projectId);
         // await chatService.DeleteById(projectId);
         // await roleService.RemoveRolesByProjectId(projectId);
-        projectRepository.DeleteProject(project);
+        await projectRepository.DeleteProject(project);
         //await dataTransactionService.CommitAsync();
     }
 

@@ -67,23 +67,6 @@ public static class MapExtension
         };
     }
 
-    public static ProjectOnReturnDto MapToDto(this Project project)
-    {
-        return new ProjectOnReturnDto
-        {
-            Id = project.ProjectId,
-            Name = project.Name,
-            Description = project.Description ?? string.Empty,
-            OwnerId = project.OwnerId,
-            Created = project.Created,
-            DeadlineDate = project.DeadlineDate,
-            
-            // do we actually need these properties in this dto?
-            Roles = project.Roles.Select(x => x.MapToDto()).ToArray(),
-            Users = project.Users.Select(x => x.MapToDto()).ToArray()
-        };
-    }
-
     public static ProjectTaskDto MapToDto(this ProjectTask projectTask)
     {
         return new ProjectTaskDto
@@ -119,35 +102,6 @@ public static class MapExtension
             StageId = projectTaskDto.StageId,
             AssigneeId = projectTaskDto.Assignee?.Id,
             Created = projectTaskDto.Created,
-        };
-    }
-
-    public static ProjectHeaderInfoDto MapToHeaderDto(this Project project)
-    {
-        return new ProjectHeaderInfoDto
-        {
-            ChatId = project.ChatId,
-            Name = project.Name,
-            OwnerId = project.OwnerId
-        };
-    }
-
-    public static ProjectShortInfoDto MapToSidebarDto(this Project project)
-    {
-        return new ProjectShortInfoDto
-        {
-            Id = project.ProjectId,
-            Name = project.Name
-        };
-    }
-
-    public static Role MapToModel(this RoleDtoOnCreate dto)
-    {
-        return new Role
-        {
-            Name = dto.Name,
-            ProjectId = dto.ProjectId,
-            Color = dto.Color
         };
     }
 

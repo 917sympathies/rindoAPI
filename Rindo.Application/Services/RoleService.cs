@@ -1,8 +1,7 @@
 ﻿using Application.Common.Exceptions;
-using Application.Common.Mapping;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
-using Rindo.Domain.DTO;
+using Mapster;
 using Rindo.Domain.DTO.Roles;
 using Rindo.Domain.Enums;
 using Rindo.Domain.DataObjects;
@@ -15,10 +14,9 @@ public class RoleService(
     IProjectService projectService)
     : IRoleService
 {
-    public async Task CreateRole(RoleDtoOnCreate roleDto)
+    public Task CreateRole(RoleDtoOnCreate roleDto)
     {
-        var role = roleDto.MapToModel();
-        await roleRepository.CreateRole(role);
+        return roleRepository.CreateRole(roleDto.Adapt<Role>());
     }
 
     public async Task DeleteRole(Guid roleId)
@@ -79,8 +77,8 @@ public class RoleService(
     
     public async Task<IEnumerable<RoleDto>> GetRolesByProjectId(Guid projectId)
     {
-        var roles = (await roleRepository.GetRolesByProjectId(projectId)).ToList();
-        return roles.Select(x => x.MapToDto());
+        var roles = await roleRepository.GetRolesByProjectId(projectId);
+        return roles.Select(role => role.Adapt<RoleDto>());
     }
 
     private async Task<IEnumerable<Role>> GetRolesForUser(Guid projectId)

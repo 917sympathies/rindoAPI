@@ -8,8 +8,8 @@ namespace Application.Interfaces.Services;
 public interface IProjectService
 {
     Task<IEnumerable<ProjectShortInfoDto>> GetProjectsWhereUserAttends(Guid userId);
-    Task<ProjectOnReturnDto?> GetProjectById(Guid projectId);
-    Task<ProjectOnReturnDto> GetProjectSettings(Guid projectId);
+    Task<ProjectDto?> GetProjectById(Guid projectId);
+    Task<ProjectDto> GetProjectSettings(Guid projectId);
     Task<ProjectHeaderInfoDto?> GetProjectsInfoForHeader(Guid projectId);
     Task<User> InviteUserToProject(Guid projectId, string username);
     Task AddUserToProject(Guid projectId, Guid userId);

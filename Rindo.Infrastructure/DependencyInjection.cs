@@ -48,14 +48,6 @@ public static class DependencyInjection
         {
             redisOptions.Configuration = dbOptions.REDIS;
         });
-        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(dbOptions.REDIS));
-
-        services.AddScoped<IExtendedDistributedCache>(serviceProvider =>
-        {
-            var cache = serviceProvider.GetRequiredService<IDistributedCache>();
-            var redis = serviceProvider.GetRequiredService<IConnectionMultiplexer>();
-            return new ExtendedDistributedCache(cache, redis);
-        });
         
         services.AddScoped<IRedisCacheService, RedisCacheService>();
         services.AddScoped<IDataTransactionService, DataTransactionService>();

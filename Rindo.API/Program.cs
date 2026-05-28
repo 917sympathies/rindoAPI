@@ -1,6 +1,5 @@
 using Application;
 using Application.Interfaces.Access;
-using Application.Services.Background;
 using NLog;
 using NLog.Web;
 using Rindo.API.Common;
@@ -30,7 +29,6 @@ try
         { 
             options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; 
         });
-    builder.Services.AddHostedService<AuthCacheClearingBackgroundService>(); 
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Configuration

@@ -2,7 +2,7 @@
 
 public class RoleDtoOnCreate
 {
-    public string Name { get; set; } = default!;
+    public string Name { get; set; }
     public Guid ProjectId { get; set; }
-    public string Color { get; set; } = default!;
+    public string Color { get; set; }
 }

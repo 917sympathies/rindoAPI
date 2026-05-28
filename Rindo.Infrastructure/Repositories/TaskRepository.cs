@@ -12,7 +12,7 @@ public class TaskRepository(PostgresDbContext context) : RepositoryBase<ProjectT
     private readonly PostgresDbContext _context = context;
     public Task<ProjectTask> CreateTask(ProjectTask projectTask) => CreateAsync(projectTask);
 
-    public async Task DeleteTask(ProjectTask projectTask) => await Delete(projectTask);
+    public Task DeleteTask(ProjectTask projectTask) => Delete(projectTask);
 
     public async Task UpdateTask(UpdateTaskDto projectTask, Guid modifiedBy, DateTime modified)
     {
